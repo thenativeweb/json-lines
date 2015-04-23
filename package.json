@@ -1,0 +1,36 @@
+{
+  "name": "json-lines",
+  "version": "0.0.0",
+  "description": "json-lines streams JSON Lines.",
+  "contributors": [
+    {
+      "name": "Golo Roden",
+      "email": "golo.roden@thenativeweb.io"
+    },
+    {
+      "name": "Matthias Wagler",
+      "email": "matthias.wagler@thenativeweb.io"
+    }
+  ],
+  "main": "lib/jsonLines.js",
+  "dependencies": {
+    "timer2": "0.2.2"
+  },
+  "devDependencies": {
+    "assertthat": "0.6.0",
+    "express": "4.12.3",
+    "grunt": "0.4.5",
+    "tourism": "0.16.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/thenativeweb/json-lines.git"
+  },
+  "keywords": [
+    "json",
+    "json-lines",
+    "parser",
+    "stream"
+  ],
+  "license": "MIT"
+}
