@@ -56,6 +56,44 @@ suite('route', function () {
     });
   });
 
+  test('is able to close a client.', function (done) {
+    app.get('/', route(function (client) {
+      client.once('open', function () {
+        client.send({ foo: 'bar' });
+        client.close();
+      });
+    }));
+
+    http.get('http://localhost:' + port, function (res) {
+      res.once('data', function (data) {
+        assert.that(JSON.parse(data.toString())).is.equalTo({ foo: 'bar' });
+      });
+
+      res.once('end', function () {
+        done();
+      });
+    });
+  });
+
+  test('emits a close event when the client is closed from the server.', function (done) {
+    app.get('/', route(function (client) {
+      client.once('open', function () {
+        client.close();
+      });
+
+      client.once('close', function () {
+        done();
+      });
+    }));
+
+    http.get('http://localhost:' + port, function (res) {
+      setTimeout(function () {
+        res.socket.end();
+        res.removeAllListeners();
+      }, 0.5 * 1000);
+    });
+  });
+
   test('cleans up when the client disconnects.', function (done) {
     app.get('/', route(function (client) {
       client.on('open', function () {

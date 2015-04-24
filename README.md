@@ -36,6 +36,12 @@ client.send({
 });
 ```
 
+If you want to close the connection, call the `close` function. This will emit the `close` event and clean up any event listeners.
+
+```javascript
+client.close();
+```
+
 ## Running the build
 
 This module can be built using [Grunt](http://gruntjs.com/). Besides running the tests, this also analyses the code. To run Grunt, go to the folder where you have installed json-lines and run `grunt`. You need to have [grunt-cli](https://github.com/gruntjs/grunt-cli) installed.
