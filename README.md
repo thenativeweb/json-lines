@@ -14,21 +14,21 @@ First you need to add a reference to json-lines in your application.
 var jsonLines = require('json-lines');
 ```
 
-To send JSON you need an Express application and a route that you want to use. Then subscribe to the `open` and `close` events to initialize or end data transfer.
+To send JSON you need an Express application and a route that you want to use. Then subscribe to the `connect` and `disconnect` events to initialize or end data transfer.
 
 ```javascript
 app.get('/events', jsonLines(function (client) {
-  client.once('open', function () {
+  client.once('connect', function () {
     // ...
   });
 
-  client.once('close', function () {
+  client.once('disconnect', function () {
     // ...
   });
 }));
 ```
 
-Within the `open` event handler, you can use the `send` function to actually stream data to the client.
+Within the `connect` event handler, you can use the `send` function to actually stream data to the client.
 
 ```javascript
 client.send({
@@ -36,10 +36,10 @@ client.send({
 });
 ```
 
-If you want to close the connection, call the `close` function. This will emit the `close` event and clean up any event listeners.
+If you want to close the connection to the client, call the `disconnect` function. This will emit the `disconnect` event and clean up any event listeners.
 
 ```javascript
-client.close();
+client.disconnect();
 ```
 
 ## Running the build

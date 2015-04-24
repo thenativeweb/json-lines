@@ -26,9 +26,9 @@ suite('route', function () {
     done();
   });
 
-  test('emits an open event when the client connects.', function (done) {
+  test('emits a connect event when the client connects.', function (done) {
     app.get('/', route(function (client) {
-      client.once('open', function () {
+      client.once('connect', function () {
         done();
       });
     }));
@@ -41,9 +41,9 @@ suite('route', function () {
     });
   });
 
-  test('emits a close event when the client disconnects.', function (done) {
+  test('emits a disconnect event when the client disconnects.', function (done) {
     app.get('/', route(function (client) {
-      client.once('close', function () {
+      client.once('disconnect', function () {
         done();
       });
     }));
@@ -56,11 +56,11 @@ suite('route', function () {
     });
   });
 
-  test('is able to close a client.', function (done) {
+  test('is able to disconnect a client.', function (done) {
     app.get('/', route(function (client) {
-      client.once('open', function () {
+      client.once('connect', function () {
         client.send({ foo: 'bar' });
-        client.close();
+        client.disconnect();
       });
     }));
 
@@ -75,13 +75,13 @@ suite('route', function () {
     });
   });
 
-  test('emits a close event when the client is closed from the server.', function (done) {
+  test('emits a disconnect event when the client is disconnected from the server.', function (done) {
     app.get('/', route(function (client) {
-      client.once('open', function () {
-        client.close();
+      client.once('connect', function () {
+        client.disconnect();
       });
 
-      client.once('close', function () {
+      client.once('disconnect', function () {
         done();
       });
     }));
@@ -96,14 +96,14 @@ suite('route', function () {
 
   test('cleans up when the client disconnects.', function (done) {
     app.get('/', route(function (client) {
-      client.on('open', function () {
+      client.on('connect', function () {
         // Intentionally left blank...
       });
 
-      client.on('close', function () {
+      client.on('disconnect', function () {
         process.nextTick(function () {
-          assert.that(client.listeners('open').length).is.equalTo(0);
-          assert.that(client.listeners('close').length).is.equalTo(0);
+          assert.that(client.listeners('connect').length).is.equalTo(0);
+          assert.that(client.listeners('disconnect').length).is.equalTo(0);
           done();
         });
       });
@@ -146,13 +146,13 @@ suite('route', function () {
       var counter = 0,
           timer = new Timer(100);
 
-      client.once('open', function () {
+      client.once('connect', function () {
         timer.on('tick', function () {
           client.send({ counter: counter++ });
         });
       });
 
-      client.once('close', function () {
+      client.once('disconnect', function () {
         timer.destroy();
       });
     }));
@@ -177,7 +177,7 @@ suite('route', function () {
 
   test('handles newlines in data gracefully.', function (done) {
     app.get('/', route(function (client) {
-      client.once('open', function () {
+      client.once('connect', function () {
         client.send({ text: 'foo\nbar' });
       });
     }));
@@ -202,7 +202,7 @@ suite('route', function () {
 
   test('throws an error if data is not an object.', function (done) {
     app.get('/', route(function (client) {
-      client.once('open', function () {
+      client.once('connect', function () {
         assert.that(function () {
           client.send(undefined);
         }).is.throwing();
@@ -220,7 +220,7 @@ suite('route', function () {
 
   test('throws an error if data is null.', function (done) {
     app.get('/', route(function (client) {
-      client.once('open', function () {
+      client.once('connect', function () {
         assert.that(function () {
           client.send(null);
         }).is.throwing();
