@@ -14,7 +14,7 @@
   ],
   "main": "lib/jsonLines.js",
   "dependencies": {
-    "timer2": "0.2.2"
+    "timer2": "0.2.3"
   },
   "devDependencies": {
     "assertthat": "0.6.0",
