@@ -3,6 +3,7 @@
 var http = require('http');
 
 var assert = require('assertthat'),
+    bodyParser = require('body-parser'),
     express = require('express'),
     Timer = require('timer2');
 
@@ -14,6 +15,7 @@ suite('route', function () {
 
   setup(function () {
     app = express();
+    app.use(bodyParser.json());
     http.createServer(app).listen(++port);
   });
 
@@ -26,45 +28,110 @@ suite('route', function () {
     done();
   });
 
+  test('returns a 405 if GET is used.', function (done) {
+    app.get('/', route(function () {
+      // Intentionally left blank...
+    }));
+
+    http.request({
+      method: 'GET',
+      hostname: 'localhost',
+      port: port,
+      path: '/'
+    }, function (res) {
+      assert.that(res.statusCode).is.equalTo(405);
+      assert.that(res.headers.allow).is.equalTo('POST, OPTIONS');
+      done();
+    }).end();
+  });
+
   test('emits a connect event when the client connects.', function (done) {
-    app.get('/', route(function (client) {
+    app.post('/', route(function (client) {
       client.once('connect', function () {
         done();
       });
     }));
 
-    http.get('http://localhost:' + port, function (res) {
+    http.request({
+      method: 'POST',
+      hostname: 'localhost',
+      port: port,
+      path: '/'
+    }, function (res) {
+      setTimeout(function () {
+        res.socket.end();
+        res.removeAllListeners();
+      }, 0.5 * 1000);
+    }).end();
+  });
+
+  test('passes the request body to the client object.', function (done) {
+    var req;
+
+    app.post('/', route(function (client) {
+      client.once('connect', function () {
+        assert.that(client.req.body).is.equalTo({
+          foo: 'bar'
+        });
+        done();
+      });
+    }));
+
+    req = http.request({
+      method: 'POST',
+      hostname: 'localhost',
+      port: port,
+      path: '/',
+      headers: {
+        'content-type': 'application/json'
+      }
+    }, function (res) {
       setTimeout(function () {
         res.socket.end();
         res.removeAllListeners();
       }, 0.5 * 1000);
     });
+
+    req.write(JSON.stringify({
+      foo: 'bar'
+    }));
+    req.end();
   });
 
   test('emits a disconnect event when the client disconnects.', function (done) {
-    app.get('/', route(function (client) {
+    app.post('/', route(function (client) {
       client.once('disconnect', function () {
         done();
       });
     }));
 
-    http.get('http://localhost:' + port, function (res) {
+    http.request({
+      method: 'POST',
+      hostname: 'localhost',
+      port: port,
+      path: '/'
+    }, function (res) {
       setTimeout(function () {
         res.socket.end();
         res.removeAllListeners();
       }, 0.5 * 1000);
-    });
+    }).end();
   });
 
   test('is able to disconnect a client.', function (done) {
-    app.get('/', route(function (client) {
+    app.post('/', route(function (client) {
       client.once('connect', function () {
         client.send({ foo: 'bar' });
         client.disconnect();
       });
     }));
 
-    http.get('http://localhost:' + port, function (res) {
+    http.request({
+      method: 'POST',
+      hostname: 'localhost',
+      port: port,
+      path: '/'
+    }, function (res) {
       res.once('data', function (data) {
         assert.that(JSON.parse(data.toString())).is.equalTo({ foo: 'bar' });
       });
@@ -72,11 +139,11 @@ suite('route', function () {
       res.once('end', function () {
         done();
       });
-    });
+    }).end();
   });
 
   test('emits a disconnect event when the client is disconnected from the server.', function (done) {
-    app.get('/', route(function (client) {
+    app.post('/', route(function (client) {
       client.once('connect', function () {
         client.disconnect();
       });
@@ -86,16 +153,21 @@ suite('route', function () {
       });
     }));
 
-    http.get('http://localhost:' + port, function (res) {
+    http.request({
+      method: 'POST',
+      hostname: 'localhost',
+      port: port,
+      path: '/'
+    }, function (res) {
       setTimeout(function () {
         res.socket.end();
         res.removeAllListeners();
       }, 0.5 * 1000);
-    });
+    }).end();
   });
 
   test('cleans up when the client disconnects.', function (done) {
-    app.get('/', route(function (client) {
+    app.post('/', route(function (client) {
       client.on('connect', function () {
         // Intentionally left blank...
       });
@@ -109,12 +181,17 @@ suite('route', function () {
       });
     }));
 
-    http.get('http://localhost:' + port, function (res) {
+    http.request({
+      method: 'POST',
+      hostname: 'localhost',
+      port: port,
+      path: '/'
+    }, function (res) {
       setTimeout(function () {
         res.socket.end();
         res.removeAllListeners();
       }, 500);
-    });
+    }).end();
   });
 
   test('sends heartbeats.', function (done) {
@@ -122,11 +199,16 @@ suite('route', function () {
 
     this.timeout(5 * 1000);
 
-    app.get('/', route(function () {
+    app.post('/', route(function () {
       // Intentionally left blank ;-)
     }));
 
-    http.get('http://localhost:' + port, function (res) {
+    http.request({
+      method: 'POST',
+      hostname: 'localhost',
+      port: port,
+      path: '/'
+    }, function (res) {
       res.on('data', function (data) {
         var result = JSON.parse(data.toString());
 
@@ -139,11 +221,11 @@ suite('route', function () {
           done();
         }
       });
-    });
+    }).end();
   });
 
   test('streams data.', function (done) {
-    app.get('/', route(function (client) {
+    app.post('/', route(function (client) {
       var counter = 0,
           timer = new Timer(100);
 
@@ -158,7 +240,12 @@ suite('route', function () {
       });
     }));
 
-    http.get('http://localhost:' + port, function (res) {
+    http.request({
+      method: 'POST',
+      hostname: 'localhost',
+      port: port,
+      path: '/'
+    }, function (res) {
       res.on('data', function (data) {
         var result = JSON.parse(data.toString());
 
@@ -173,17 +260,22 @@ suite('route', function () {
           done();
         }
       });
-    });
+    }).end();
   });
 
   test('handles newlines in data gracefully.', function (done) {
-    app.get('/', route(function (client) {
+    app.post('/', route(function (client) {
       client.once('connect', function () {
         client.send({ text: 'foo\nbar' });
       });
     }));
 
-    http.get('http://localhost:' + port, function (res) {
+    http.request({
+      method: 'POST',
+      hostname: 'localhost',
+      port: port,
+      path: '/'
+    }, function (res) {
       res.on('data', function (data) {
         var result = JSON.parse(data.toString());
 
@@ -198,11 +290,11 @@ suite('route', function () {
         res.removeAllListeners();
         done();
       });
-    });
+    }).end();
   });
 
   test('throws an error if data is not an object.', function (done) {
-    app.get('/', route(function (client) {
+    app.post('/', route(function (client) {
       client.once('connect', function () {
         assert.that(function () {
           client.send(undefined);
@@ -211,16 +303,21 @@ suite('route', function () {
       });
     }));
 
-    http.get('http://localhost:' + port, function (res) {
+    http.request({
+      method: 'POST',
+      hostname: 'localhost',
+      port: port,
+      path: '/'
+    }, function (res) {
       setTimeout(function () {
         res.socket.end();
         res.removeAllListeners();
       }, 500);
-    });
+    }).end();
   });
 
   test('throws an error if data is null.', function (done) {
-    app.get('/', route(function (client) {
+    app.post('/', route(function (client) {
       client.once('connect', function () {
         assert.that(function () {
           client.send(null);
@@ -229,11 +326,16 @@ suite('route', function () {
       });
     }));
 
-    http.get('http://localhost:' + port, function (res) {
+    http.request({
+      method: 'POST',
+      hostname: 'localhost',
+      port: port,
+      path: '/'
+    }, function (res) {
       setTimeout(function () {
         res.socket.end();
         res.removeAllListeners();
       }, 500);
-    });
+    }).end();
   });
 });

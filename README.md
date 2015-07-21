@@ -14,10 +14,12 @@ First you need to add a reference to json-lines in your application.
 var jsonLines = require('json-lines');
 ```
 
-To send JSON you need an Express application and a route that you want to use. Then subscribe to the `connect` and `disconnect` events to initialize or end data transfer.
+To send JSON you need an Express application and a route that you want to use. Please note that for technical reasons json-lines only works with `POST` routes.
+
+Then subscribe to the `connect` and `disconnect` events to initialize or end data transfer.
 
 ```javascript
-app.get('/events', jsonLines(function (client) {
+app.post('/events', jsonLines(function (client) {
   client.once('connect', function () {
     // ...
   });
@@ -41,6 +43,31 @@ If you want to close the connection to the client, call the `disconnect` functio
 ```javascript
 client.disconnect();
 ```
+
+### Parsing the request body
+
+From time to time you may want to send a request body to the json-lines route, e.g. to provide a configuration object. On the server, you can access the request's body using the `req.body` property of the `client` object.
+
+In order to do so you *must* add the [body-parser middleware](https://www.npmjs.com/package/body-parser) to your application, before adding the route itself.
+
+```javascript
+var bodyParser = require('body-parser');
+
+app.use(bodyParser.json());
+
+app.post('/events', jsonLines(function (client) {
+  console.log(client.req.body);
+  // => {
+  //      foo: 'bar'
+  //    }
+}));
+```
+
+### Using the client module
+
+To connect to a json-lines enabled server, use the [json-lines-client](https://www.npmjs.com/package/json-lines-client) module.
+
+**Please note that json-lines 0.4.0 is not backwards-compatible. You must use [json-lines-client](https://www.npmjs.com/package/json-lines-client) 0.6.0 or higher.**
 
 ## Running the build
 
