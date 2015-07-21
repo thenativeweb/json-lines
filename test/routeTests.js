@@ -132,12 +132,14 @@ suite('route', function () {
       port: port,
       path: '/'
     }, function (res) {
-      res.once('data', function (data) {
-        assert.that(JSON.parse(data.toString())).is.equalTo({ foo: 'bar' });
-      });
-
-      res.once('end', function () {
-        done();
+      res.once('data', function (data1) {
+        res.once('data', function (data2) {
+          res.once('end', function () {
+            done();
+          });
+          assert.that(JSON.parse(data2.toString())).is.equalTo({ foo: 'bar' });
+        });
+        assert.that(JSON.parse(data1.toString())).is.equalTo({ name: 'heartbeat' });
       });
     }).end();
   });
