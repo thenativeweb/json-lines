@@ -129,6 +129,7 @@ suite('route', function () {
     http.get('http://localhost:' + port, function (res) {
       res.on('data', function (data) {
         var result = JSON.parse(data.toString());
+
         assert.that(result.name).is.equalTo('heartbeat');
         counter++;
 
