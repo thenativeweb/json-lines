@@ -4,14 +4,16 @@ json-lines streams JSON Lines.
 
 ## Installation
 
-    $ npm install json-lines
+```bash
+$ npm install json-lines
+```
 
 ## Quick start
 
 First you need to add a reference to json-lines in your application.
 
 ```javascript
-var jsonLines = require('json-lines');
+const jsonLines = require('json-lines');
 ```
 
 To send JSON you need an Express application and a route that you want to use. Please note that for technical reasons json-lines only works with `POST` routes.
@@ -19,12 +21,12 @@ To send JSON you need an Express application and a route that you want to use. P
 Then subscribe to the `connect` and `disconnect` events to initialize or end data transfer.
 
 ```javascript
-app.post('/events', jsonLines(function (client) {
-  client.once('connect', function () {
+app.post('/events', jsonLines(client => {
+  client.once('connect', () => {
     // ...
   });
 
-  client.once('disconnect', function () {
+  client.once('disconnect', () => {
     // ...
   });
 }));
@@ -51,11 +53,11 @@ From time to time you may want to send a request body to the json-lines route, e
 In order to do so you *must* add the [body-parser middleware](https://www.npmjs.com/package/body-parser) to your application, before adding the route itself.
 
 ```javascript
-var bodyParser = require('body-parser');
+const bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
 
-app.post('/events', jsonLines(function (client) {
+app.post('/events', jsonLines(client => {
   console.log(client.req.body);
   // => {
   //      foo: 'bar'
@@ -71,14 +73,16 @@ To connect to a json-lines enabled server, use the [json-lines-client](https://w
 
 ## Running the build
 
-This module can be built using [Grunt](http://gruntjs.com/). Besides running the tests, this also analyses the code. To run Grunt, go to the folder where you have installed json-lines and run `grunt`. You need to have [grunt-cli](https://github.com/gruntjs/grunt-cli) installed.
+To build this module use [roboter](https://www.npmjs.com/package/roboter).
 
-    $ grunt
+```bash
+$ bot build-server
+```
 
 ## License
 
 The MIT License (MIT)
-Copyright (c) 2015 the native web.
+Copyright (c) 2015-2016 the native web.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

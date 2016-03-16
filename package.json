@@ -18,10 +18,10 @@
   },
   "devDependencies": {
     "assertthat": "0.6.0",
-    "body-parser": "1.13.2",
-    "express": "4.13.1",
-    "grunt": "0.4.5",
-    "tourism": "0.20.2"
+    "body-parser": "1.15.0",
+    "express": "4.13.4",
+    "gulp": "^3.9.1",
+    "roboter": "^0.5.1"
   },
   "repository": {
     "type": "git",

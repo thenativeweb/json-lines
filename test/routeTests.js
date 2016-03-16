@@ -1,16 +1,16 @@
 'use strict';
 
-var http = require('http');
+const http = require('http');
 
-var assert = require('assertthat'),
+const assert = require('assertthat'),
     bodyParser = require('body-parser'),
     express = require('express'),
     Timer = require('timer2');
 
-var route = require('../lib/route')(1.5);
+const route = require('../lib/route')(1.5);
 
 suite('route', function () {
-  var app,
+  let app,
       port = 3000;
 
   setup(function () {
@@ -19,26 +19,22 @@ suite('route', function () {
     http.createServer(app).listen(++port);
   });
 
-  teardown(function () {
-    app = undefined;
-  });
-
   test('is a function.', function (done) {
     assert.that(route).is.ofType('function');
     done();
   });
 
   test('returns a 405 if GET is used.', function (done) {
-    app.get('/', route(function () {
+    app.get('/', route(() => {
       // Intentionally left blank...
     }));
 
     http.request({
       method: 'GET',
       hostname: 'localhost',
-      port: port,
+      port,
       path: '/'
-    }, function (res) {
+    }, res => {
       assert.that(res.statusCode).is.equalTo(405);
       assert.that(res.headers.allow).is.equalTo('POST, OPTIONS');
       done();
@@ -46,8 +42,8 @@ suite('route', function () {
   });
 
   test('emits a connect event when the client connects.', function (done) {
-    app.post('/', route(function (client) {
-      client.once('connect', function () {
+    app.post('/', route(client => {
+      client.once('connect', () => {
         done();
       });
     }));
@@ -55,10 +51,10 @@ suite('route', function () {
     http.request({
       method: 'POST',
       hostname: 'localhost',
-      port: port,
+      port,
       path: '/'
-    }, function (res) {
-      setTimeout(function () {
+    }, res => {
+      setTimeout(() => {
         res.socket.end();
         res.removeAllListeners();
       }, 0.5 * 1000);
@@ -66,41 +62,35 @@ suite('route', function () {
   });
 
   test('passes the request body to the client object.', function (done) {
-    var req;
-
-    app.post('/', route(function (client) {
-      client.once('connect', function () {
-        assert.that(client.req.body).is.equalTo({
-          foo: 'bar'
-        });
+    app.post('/', route(client => {
+      client.once('connect', () => {
+        assert.that(client.req.body).is.equalTo({ foo: 'bar' });
         done();
       });
     }));
 
-    req = http.request({
+    const req = http.request({
       method: 'POST',
       hostname: 'localhost',
-      port: port,
+      port,
       path: '/',
       headers: {
         'content-type': 'application/json'
       }
-    }, function (res) {
-      setTimeout(function () {
+    }, res => {
+      setTimeout(() => {
         res.socket.end();
         res.removeAllListeners();
       }, 0.5 * 1000);
     });
 
-    req.write(JSON.stringify({
-      foo: 'bar'
-    }));
+    req.write(JSON.stringify({ foo: 'bar' }));
     req.end();
   });
 
   test('emits a disconnect event when the client disconnects.', function (done) {
-    app.post('/', route(function (client) {
-      client.once('disconnect', function () {
+    app.post('/', route(client => {
+      client.once('disconnect', () => {
         done();
       });
     }));
@@ -108,10 +98,10 @@ suite('route', function () {
     http.request({
       method: 'POST',
       hostname: 'localhost',
-      port: port,
+      port,
       path: '/'
-    }, function (res) {
-      setTimeout(function () {
+    }, res => {
+      setTimeout(() => {
         res.socket.end();
         res.removeAllListeners();
       }, 0.5 * 1000);
@@ -119,8 +109,8 @@ suite('route', function () {
   });
 
   test('is able to disconnect a client.', function (done) {
-    app.post('/', route(function (client) {
-      client.once('connect', function () {
+    app.post('/', route(client => {
+      client.once('connect', () => {
         client.send({ foo: 'bar' });
         client.disconnect();
       });
@@ -129,12 +119,12 @@ suite('route', function () {
     http.request({
       method: 'POST',
       hostname: 'localhost',
-      port: port,
+      port,
       path: '/'
-    }, function (res) {
-      res.once('data', function (data1) {
-        res.once('data', function (data2) {
-          res.once('end', function () {
+    }, res => {
+      res.once('data', data1 => {
+        res.once('data', data2 => {
+          res.once('end', () => {
             done();
           });
           assert.that(JSON.parse(data2.toString())).is.equalTo({ foo: 'bar' });
@@ -145,12 +135,12 @@ suite('route', function () {
   });
 
   test('emits a disconnect event when the client is disconnected from the server.', function (done) {
-    app.post('/', route(function (client) {
-      client.once('connect', function () {
+    app.post('/', route(client => {
+      client.once('connect', () => {
         client.disconnect();
       });
 
-      client.once('disconnect', function () {
+      client.once('disconnect', () => {
         done();
       });
     }));
@@ -158,10 +148,10 @@ suite('route', function () {
     http.request({
       method: 'POST',
       hostname: 'localhost',
-      port: port,
+      port,
       path: '/'
-    }, function (res) {
-      setTimeout(function () {
+    }, res => {
+      setTimeout(() => {
         res.socket.end();
         res.removeAllListeners();
       }, 0.5 * 1000);
@@ -169,13 +159,13 @@ suite('route', function () {
   });
 
   test('cleans up when the client disconnects.', function (done) {
-    app.post('/', route(function (client) {
-      client.on('connect', function () {
+    app.post('/', route(client => {
+      client.on('connect', () => {
         // Intentionally left blank...
       });
 
-      client.on('disconnect', function () {
-        process.nextTick(function () {
+      client.on('disconnect', () => {
+        process.nextTick(() => {
           assert.that(client.listeners('connect').length).is.equalTo(0);
           assert.that(client.listeners('disconnect').length).is.equalTo(0);
           done();
@@ -186,10 +176,10 @@ suite('route', function () {
     http.request({
       method: 'POST',
       hostname: 'localhost',
-      port: port,
+      port,
       path: '/'
-    }, function (res) {
-      setTimeout(function () {
+    }, res => {
+      setTimeout(() => {
         res.socket.end();
         res.removeAllListeners();
       }, 500);
@@ -197,22 +187,22 @@ suite('route', function () {
   });
 
   test('sends heartbeats.', function (done) {
-    var counter = 0;
+    let counter = 0;
 
     this.timeout(5 * 1000);
 
-    app.post('/', route(function () {
+    app.post('/', route(() => {
       // Intentionally left blank ;-)
     }));
 
     http.request({
       method: 'POST',
       hostname: 'localhost',
-      port: port,
+      port,
       path: '/'
-    }, function (res) {
-      res.on('data', function (data) {
-        var result = JSON.parse(data.toString());
+    }, res => {
+      res.on('data', data => {
+        const result = JSON.parse(data.toString());
 
         assert.that(result.name).is.equalTo('heartbeat');
         counter++;
@@ -227,17 +217,18 @@ suite('route', function () {
   });
 
   test('streams data.', function (done) {
-    app.post('/', route(function (client) {
-      var counter = 0,
-          timer = new Timer(100);
+    app.post('/', route(client => {
+      const timer = new Timer(100);
 
-      client.once('connect', function () {
-        timer.on('tick', function () {
+      let counter = 0;
+
+      client.once('connect', () => {
+        timer.on('tick', () => {
           client.send({ counter: counter++ });
         });
       });
 
-      client.once('disconnect', function () {
+      client.once('disconnect', () => {
         timer.destroy();
       });
     }));
@@ -245,11 +236,11 @@ suite('route', function () {
     http.request({
       method: 'POST',
       hostname: 'localhost',
-      port: port,
+      port,
       path: '/'
-    }, function (res) {
-      res.on('data', function (data) {
-        var result = JSON.parse(data.toString());
+    }, res => {
+      res.on('data', data => {
+        const result = JSON.parse(data.toString());
 
         if (result.name === 'heartbeat') {
           return;
@@ -266,8 +257,8 @@ suite('route', function () {
   });
 
   test('handles newlines in data gracefully.', function (done) {
-    app.post('/', route(function (client) {
-      client.once('connect', function () {
+    app.post('/', route(client => {
+      client.once('connect', () => {
         client.send({ text: 'foo\nbar' });
       });
     }));
@@ -275,18 +266,16 @@ suite('route', function () {
     http.request({
       method: 'POST',
       hostname: 'localhost',
-      port: port,
+      port,
       path: '/'
     }, function (res) {
-      res.on('data', function (data) {
-        var result = JSON.parse(data.toString());
+      res.on('data', data => {
+        const result = JSON.parse(data.toString());
 
         if (result.name === 'heartbeat') {
           return;
         }
-        assert.that(result).is.equalTo({
-          text: 'foo\nbar'
-        });
+        assert.that(result).is.equalTo({ text: 'foo\nbar' });
 
         res.socket.end();
         res.removeAllListeners();
@@ -296,9 +285,9 @@ suite('route', function () {
   });
 
   test('throws an error if data is not an object.', function (done) {
-    app.post('/', route(function (client) {
-      client.once('connect', function () {
-        assert.that(function () {
+    app.post('/', route(client => {
+      client.once('connect', () => {
+        assert.that(() => {
           client.send(undefined);
         }).is.throwing();
         done();
@@ -308,10 +297,10 @@ suite('route', function () {
     http.request({
       method: 'POST',
       hostname: 'localhost',
-      port: port,
+      port,
       path: '/'
-    }, function (res) {
-      setTimeout(function () {
+    }, res => {
+      setTimeout(() => {
         res.socket.end();
         res.removeAllListeners();
       }, 500);
@@ -319,9 +308,9 @@ suite('route', function () {
   });
 
   test('throws an error if data is null.', function (done) {
-    app.post('/', route(function (client) {
-      client.once('connect', function () {
-        assert.that(function () {
+    app.post('/', route(client => {
+      client.once('connect', () => {
+        assert.that(() => {
           client.send(null);
         }).is.throwing();
         done();
@@ -331,10 +320,10 @@ suite('route', function () {
     http.request({
       method: 'POST',
       hostname: 'localhost',
-      port: port,
+      port,
       path: '/'
-    }, function (res) {
-      setTimeout(function () {
+    }, res => {
+      setTimeout(() => {
         res.socket.end();
         res.removeAllListeners();
       }, 500);
