@@ -17,11 +17,10 @@
     "timer2": "0.2.3"
   },
   "devDependencies": {
-    "assertthat": "0.6.0",
-    "body-parser": "1.15.0",
+    "assertthat": "0.7.0",
+    "body-parser": "1.15.1",
     "express": "4.13.4",
-    "gulp": "^3.9.1",
-    "roboter": "^0.5.1"
+    "roboter": "0.8.1"
   },
   "repository": {
     "type": "git",
