@@ -3,28 +3,30 @@
 const http = require('http');
 
 const assert = require('assertthat'),
-    bodyParser = require('body-parser'),
-    express = require('express'),
-    Timer = require('timer2');
+      bodyParser = require('body-parser'),
+      express = require('express'),
+      Timer = require('timer2');
 
 const route = require('../lib/route')(1.5);
 
-suite('route', function () {
+suite('route', () => {
   let app,
       port = 3000;
 
-  setup(function () {
+  setup(() => {
     app = express();
     app.use(bodyParser.json());
-    http.createServer(app).listen(++port);
+
+    port += 1;
+    http.createServer(app).listen(port);
   });
 
-  test('is a function.', function (done) {
+  test('is a function.', done => {
     assert.that(route).is.ofType('function');
     done();
   });
 
-  test('returns a 405 if GET is used.', function (done) {
+  test('returns a 405 if GET is used.', done => {
     app.get('/', route(() => {
       // Intentionally left blank...
     }));
@@ -41,7 +43,7 @@ suite('route', function () {
     }).end();
   });
 
-  test('emits a connect event when the client connects.', function (done) {
+  test('emits a connect event when the client connects.', done => {
     app.post('/', route(client => {
       client.once('connect', () => {
         done();
@@ -61,7 +63,7 @@ suite('route', function () {
     }).end();
   });
 
-  test('passes the request body to the client object.', function (done) {
+  test('passes the request body to the client object.', done => {
     app.post('/', route(client => {
       client.once('connect', () => {
         assert.that(client.req.body).is.equalTo({ foo: 'bar' });
@@ -88,7 +90,7 @@ suite('route', function () {
     req.end();
   });
 
-  test('emits a disconnect event when the client disconnects.', function (done) {
+  test('emits a disconnect event when the client disconnects.', done => {
     app.post('/', route(client => {
       client.once('disconnect', () => {
         done();
@@ -108,7 +110,7 @@ suite('route', function () {
     }).end();
   });
 
-  test('is able to disconnect a client.', function (done) {
+  test('is able to disconnect a client.', done => {
     app.post('/', route(client => {
       client.once('connect', () => {
         client.send({ foo: 'bar' });
@@ -134,7 +136,7 @@ suite('route', function () {
     }).end();
   });
 
-  test('emits a disconnect event when the client is disconnected from the server.', function (done) {
+  test('emits a disconnect event when the client is disconnected from the server.', done => {
     app.post('/', route(client => {
       client.once('connect', () => {
         client.disconnect();
@@ -158,7 +160,7 @@ suite('route', function () {
     }).end();
   });
 
-  test('cleans up when the client disconnects.', function (done) {
+  test('cleans up when the client disconnects.', done => {
     app.post('/', route(client => {
       client.on('connect', () => {
         // Intentionally left blank...
@@ -205,18 +207,42 @@ suite('route', function () {
         const result = JSON.parse(data.toString());
 
         assert.that(result.name).is.equalTo('heartbeat');
-        counter++;
+        counter += 1;
 
         if (counter === 3) {
           res.socket.end();
           res.removeAllListeners();
-          done();
+
+          return done();
         }
       });
     }).end();
   });
 
-  test('streams data.', function (done) {
+  test('immediately sends the first heartbeat.', done => {
+    app.post('/', route(() => {
+      // Intentionally left blank ;-)
+    }));
+
+    http.request({
+      method: 'POST',
+      hostname: 'localhost',
+      port,
+      path: '/'
+    }, res => {
+      res.on('data', data => {
+        const result = JSON.parse(data.toString());
+
+        assert.that(result.name).is.equalTo('heartbeat');
+        res.socket.end();
+        res.removeAllListeners();
+
+        return done();
+      });
+    }).end();
+  });
+
+  test('streams data.', done => {
     app.post('/', route(client => {
       const timer = new Timer(100);
 
@@ -224,7 +250,8 @@ suite('route', function () {
 
       client.once('connect', () => {
         timer.on('tick', () => {
-          client.send({ counter: counter++ });
+          client.send({ counter });
+          counter += 1;
         });
       });
 
@@ -250,13 +277,14 @@ suite('route', function () {
         if (result.counter === 9) {
           res.socket.end();
           res.removeAllListeners();
-          done();
+
+          return done();
         }
       });
     }).end();
   });
 
-  test('handles newlines in data gracefully.', function (done) {
+  test('handles newlines in data gracefully.', done => {
     app.post('/', route(client => {
       client.once('connect', () => {
         client.send({ text: 'foo\nbar' });
@@ -268,7 +296,7 @@ suite('route', function () {
       hostname: 'localhost',
       port,
       path: '/'
-    }, function (res) {
+    }, res => {
       res.on('data', data => {
         const result = JSON.parse(data.toString());
 
@@ -284,7 +312,7 @@ suite('route', function () {
     }).end();
   });
 
-  test('throws an error if data is not an object.', function (done) {
+  test('throws an error if data is not an object.', done => {
     app.post('/', route(client => {
       client.once('connect', () => {
         assert.that(() => {
@@ -307,7 +335,7 @@ suite('route', function () {
     }).end();
   });
 
-  test('throws an error if data is null.', function (done) {
+  test('throws an error if data is null.', done => {
     app.post('/', route(client => {
       client.once('connect', () => {
         assert.that(() => {
