@@ -1,6 +1,6 @@
 {
   "name": "json-lines",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "json-lines streams JSON Lines.",
   "contributors": [
     {
