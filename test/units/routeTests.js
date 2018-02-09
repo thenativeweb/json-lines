@@ -7,7 +7,7 @@ const assert = require('assertthat'),
       express = require('express'),
       Timer = require('timer2');
 
-const route = require('../lib/route')(1.5);
+const route = require('../../lib/route')({ heartbeatInterval: 1.5 });
 
 suite('route', () => {
   let app,

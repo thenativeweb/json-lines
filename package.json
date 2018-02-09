@@ -10,17 +10,22 @@
     {
       "name": "Matthias Wagler",
       "email": "matthias.wagler@thenativeweb.io"
+    },
+    {
+      "name": "Jan-Hendrik Grundhöfer",
+      "email": "jan-hendrik.grundhoefer@thenativeweb.io"
     }
   ],
-  "main": "lib/jsonLines.js",
+  "main": "dist/jsonLines.js",
   "dependencies": {
-    "timer2": "0.2.3"
+    "timer2": "1.0.0"
   },
   "devDependencies": {
-    "assertthat": "0.7.0",
-    "body-parser": "1.15.1",
-    "express": "4.13.4",
-    "roboter": "0.8.1"
+    "assertthat": "1.0.0",
+    "body-parser": "1.18.2",
+    "express": "4.16.2",
+    "roboter": "0.15.6",
+    "roboter-server": "0.15.6"
   },
   "repository": {
     "type": "git",
