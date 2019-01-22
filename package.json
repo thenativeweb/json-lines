@@ -21,11 +21,10 @@
     "timer2": "1.0.0"
   },
   "devDependencies": {
-    "assertthat": "1.0.0",
-    "body-parser": "1.18.2",
-    "express": "4.16.2",
-    "roboter": "0.15.6",
-    "roboter-server": "0.15.6"
+    "assertthat": "2.0.1",
+    "body-parser": "1.18.3",
+    "express": "4.16.4",
+    "roboter": "3.0.4"
   },
   "repository": {
     "type": "git",
