@@ -23,7 +23,7 @@
   "devDependencies": {
     "assertthat": "2.0.1",
     "body-parser": "1.18.3",
-    "express": "4.16.4",
+    "express": "4.17.3",
     "roboter": "3.0.4"
   },
   "repository": {
